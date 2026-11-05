@@ -1,4 +1,4 @@
-# Environments & Keys
+# Environments & Secrets
 .env
 .env.*
 venv/
@@ -12,7 +12,7 @@ tcs_faiss_index/
 *.faiss
 *.pkl
 
-# Notebook Checkpoints & Cache
+# Notebook Checkpoints & Python Cache
 .ipynb_checkpoints/
 __pycache__/
 *.py[cod]
