@@ -1,0 +1,25 @@
+# Environments & Keys
+.env
+.env.*
+venv/
+env/
+.venv/
+
+# Heavy Files & FAISS Database
+tcs.pdf
+*.pdf
+tcs_faiss_index/
+*.faiss
+*.pkl
+
+# Notebook Checkpoints & Cache
+.ipynb_checkpoints/
+__pycache__/
+*.py[cod]
+
+# Frontend Dependencies & Builds
+**/node_modules/
+**/dist/
+
+# Logs
+*.log

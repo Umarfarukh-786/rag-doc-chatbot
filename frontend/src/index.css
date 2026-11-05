@@ -1,0 +1,77 @@
+
+/* Global Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --text: #d1d5db;
+  --text-h: #f9fafb;
+  --bg: #09090b;
+  --border: #27272a;
+  --code-bg: #18181b;
+  --accent: #3b82f6;
+
+  font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  color: var(--text);
+  background: var(--bg);
+  color-scheme: dark;
+}
+
+html,
+body {
+  width: 100%;
+  min-width: 320px;
+  min-height: 100%;
+  margin: 0;
+  background: #09090b;
+}
+
+#root {
+  width: 100%;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  background: #09090b;
+}
+
+h1,
+h2,
+h3 {
+  color: #f9fafb;
+  font-family: inherit;
+  font-weight: 600;
+}
+
+h1 {
+  font-size: 32px;
+  margin: 20px 0;
+}
+
+h2 {
+  font-size: 20px;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+code {
+  font-family: Consolas, monospace;
+  background: #27272a;
+  color: #e5e7eb;
+  padding: 3px 6px;
+  border-radius: 4px;
+}
