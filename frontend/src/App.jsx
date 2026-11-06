@@ -340,13 +340,25 @@ function App() {
           {/* Welcome Section and Suggested Questions */}
           {activeChat?.messages.length === 0 && (
             <div className="welcome">
+
+              <div className="welcome-badge">
+                <span className="welcome-badge-dot"></span>
+                AI-POWERED RESEARCH ASSISTANT
+              </div>
+
               <Bot size={45} />
 
-              <h1>TCS Annual Report Assistant</h1>
+              <h1>
+                TCS Annual Report
+                <span className="gradient-text">
+                  {" "}Intelligence
+                </span>
+              </h1>
 
               <p>
-                Ask questions and explore information
-                from the TCS annual report.
+                Explore financial insights, business performance,
+                and company information through intelligent
+                conversations with the TCS annual report.
               </p>
 
               <div className="suggestions">
@@ -451,7 +463,7 @@ function App() {
 
           </div>
 
-          {/* Input Area - Hidden only while AI is generating */}
+          {/* Input Area */}
           {!isLoading && activeChat && (
             <div className="input-area">
 
