@@ -1,27 +1,44 @@
 
-from flask import Flask, request, jsonify
+import os
 import time
+
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from dotenv import load_dotenv
+from groq import Groq
 
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_ollama import ChatOllama
-from flask_cors import CORS
 
 
-startup_start = time.perf_counter()
+# Load environment variables
+load_dotenv()
 
 app = Flask(__name__)
 CORS(app)
 
 
-# STEP 1: LOAD EMBEDDING MODEL
+# STEP 1: INITIALIZE GROQ
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
+
+if not GROQ_API_KEY:
+    raise ValueError("GROQ_API_KEY is missing. Check your .env file.")
+
+groq_client = Groq(api_key=GROQ_API_KEY)
+
+
+# STEP 2: LOAD EMBEDDING MODEL
+
+startup_start = time.perf_counter()
 
 model = HuggingFaceEmbeddings(
     model_name="sentence-transformers/all-mpnet-base-v2"
 )
 
 
-# STEP 2: LOAD FAISS DATABASE
+# STEP 3: LOAD FAISS DATABASE
 
 vector_store = FAISS.load_local(
     "tcs_faiss_index",
@@ -30,20 +47,32 @@ vector_store = FAISS.load_local(
 )
 
 
-# STEP 3: INITIALIZE OLLAMA
-
-llm = ChatOllama(
-    model="llama3.2:3b",
-    temperature=0,
-    num_predict=100,
-    num_ctx=2048
-)
-
-
 startup_time = time.perf_counter() - startup_start
 
 print(f"\nApplication startup time: {startup_time:.2f} seconds")
-print("TCS RAG Chatbot is ready!\n")
+print("TCS RAG Chatbot is ready!")
+print("LLM Provider: Groq")
+print(f"LLM Model: {GROQ_MODEL}\n")
+
+
+# HELPER FUNCTION: GENERATE ANSWER USING GROQ
+
+def generate_answer(prompt):
+
+    response = groq_client.chat.completions.create(
+        model=GROQ_MODEL,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt
+            }
+        ],
+        max_completion_tokens=512
+    )
+
+    answer = response.choices[0].message.content
+
+    return answer, response.usage
 
 
 # HELPER FUNCTION: FAISS RETRIEVAL
@@ -115,27 +144,38 @@ Question:
 Answer:
 """
 
-    # Generate answer
+    # Generate answer using Groq
     llm_start = time.perf_counter()
 
-    response = llm.invoke(prompt)
+    try:
+        answer, usage = generate_answer(prompt)
+
+    except Exception as error:
+        print("Groq API Error:", error)
+
+        return jsonify({
+            "error": "Unable to generate an answer. Please try again."
+        }), 502
 
     llm_time = time.perf_counter() - llm_start
-
-    if response.usage_metadata:
-        print("Token Usage:", response.usage_metadata)
 
     total_time = time.perf_counter() - total_start
 
     print("\n========== /ASK PERFORMANCE ==========")
     print(f"FAISS Retrieval Time: {retrieval_time:.2f} seconds")
-    print(f"Ollama Generation Time: {llm_time:.2f} seconds")
+    print(f"Groq Generation Time: {llm_time:.2f} seconds")
     print(f"Total Processing Time: {total_time:.2f} seconds")
+
+    if usage:
+        print("Prompt Tokens:", usage.prompt_tokens)
+        print("Completion Tokens:", usage.completion_tokens)
+        print("Total Tokens:", usage.total_tokens)
+
     print("=====================================\n")
 
     return jsonify({
         "question": question,
-        "answer": response.content
+        "answer": answer
     })
 
 
@@ -220,7 +260,9 @@ def ask_chat():
 
     for result in results:
 
-        
+        # Add retrieved PDF text to context
+        context += result.page_content + "\n\n"
+
         page_number = result.metadata.get("page")
 
         if page_number is not None:
@@ -262,10 +304,18 @@ Latest user question:
 Answer:
 """
 
-    # Generate answer
+    # Generate answer using Groq
     llm_start = time.perf_counter()
 
-    response = llm.invoke(prompt)
+    try:
+        answer, usage = generate_answer(prompt)
+
+    except Exception as error:
+        print("Groq API Error:", error)
+
+        return jsonify({
+            "error": "Unable to generate an answer. Please try again."
+        }), 502
 
     llm_time = time.perf_counter() - llm_start
 
@@ -274,16 +324,19 @@ Answer:
     # Performance information
     print("\n========== CHATBOT PERFORMANCE ==========")
     print(f"FAISS Retrieval Time: {retrieval_time:.2f} seconds")
-    print(f"Ollama Generation Time: {llm_time:.2f} seconds")
+    print(f"Groq Generation Time: {llm_time:.2f} seconds")
     print(f"Total Processing Time: {total_time:.2f} seconds")
-    print("=========================================\n")
 
-    if response.usage_metadata:
-        print("Token Usage:", response.usage_metadata)
+    if usage:
+        print("Prompt Tokens:", usage.prompt_tokens)
+        print("Completion Tokens:", usage.completion_tokens)
+        print("Total Tokens:", usage.total_tokens)
+
+    print("=========================================\n")
 
     return jsonify({
         "question": question,
-        "answer": response.content,
+        "answer": answer,
         "source_pages": source_pages
     })
 
