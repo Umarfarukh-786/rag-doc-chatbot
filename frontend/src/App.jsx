@@ -302,7 +302,7 @@ function App() {
 
         <div className="sidebar-footer">
           <Bot size={20} />
-          <span>Powered by Ollama AI</span>
+          <span>Powered by Groq AI</span>
         </div>
       </aside>
 
